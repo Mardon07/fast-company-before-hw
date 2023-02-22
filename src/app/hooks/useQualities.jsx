@@ -33,6 +33,7 @@ export const QualitiesProvider = ({ children }) => {
     function errorCatcher(error) {
         const { message } = error.response.data;
         setError(message);
+        setLoading(false);
     }
     useEffect(() => {
         if (error !== null) {

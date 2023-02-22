@@ -12,7 +12,7 @@ const UserCard = ({ user }) => {
     };
     const userProf = getProfession(user.profession);
     // console.log(userProf);
-    return (
+    return user && userProf ? (
         <div className="card mb-3">
             <div className="card-body">
                 {currentUser._id === user._id && (
@@ -32,9 +32,7 @@ const UserCard = ({ user }) => {
                     />
                     <div className="mt-3">
                         <h4>{user.name}</h4>
-                        <p className="text-secondary mb-1">
-                            {userProf.name}
-                        </p>
+                        <p className="text-secondary mb-1">{userProf.name}</p>
                         <div className="text-muted">
                             <i
                                 className="bi bi-caret-down-fill text-primary"
@@ -50,6 +48,8 @@ const UserCard = ({ user }) => {
                 </div>
             </div>
         </div>
+    ) : (
+        "Loading..."
     );
 };
 UserCard.propTypes = {

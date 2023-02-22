@@ -11,8 +11,7 @@ import { useHistory } from "react-router-dom";
 export const httpAuth = axios.create({
     baseURL: "https://identitytoolkit.googleapis.com/v1/",
     params: {
-        key: "AIzaSyBMyCrZSkm3uxirjWoDyg3VpN5iHtsUD6M"
-        //  process.env.REACT_APP_FIREBASE_KEY
+        key: process.env.REACT_APP_FIREBASE_KEY
     }
 });
 const AuthContext = React.createContext();
@@ -107,6 +106,12 @@ const AuthProvider = ({ children }) => {
             errorCatcher(error);
         }
     }
+    async function updateData(data) {
+        await createUser({
+            ...data,
+            qualities: data.qualities.map((q) => q.value)
+        });
+    }
     function errorCatcher(error) {
         const { message } = error.response.data;
         setError(message);
@@ -135,7 +140,9 @@ const AuthProvider = ({ children }) => {
         }
     }, [error]);
     return (
-        <AuthContext.Provider value={{ signUp, logIn, currentUser, logOut }}>
+        <AuthContext.Provider
+            value={{ signUp, logIn, currentUser, logOut, updateData }}
+        >
             {!isLoading ? children : "Loading..."}
         </AuthContext.Provider>
     );

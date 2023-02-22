@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-// import { useHistory, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { validator } from "../../../utils/validator";
 import TextField from "../../common/form/textField";
 import SelectField from "../../common/form/selectField";
@@ -9,12 +9,11 @@ import BackHistoryButton from "../../common/backButton";
 import { useProfessions } from "../../../hooks/useProfession";
 import { useAuth } from "../../../hooks/useAuth";
 import { useQualities } from "../../../hooks/useQualities";
-import userService from "../../../services/user.service";
 
 const EditUserPage = () => {
-    // const { userId } = useParams();
-    // const history = useHistory();
-    const { currentUser } = useAuth();
+    const { userId } = useParams();
+    const history = useHistory();
+    const { currentUser, updateData } = useAuth();
     const { professions } = useProfessions();
     const { qualities: qualData } = useQualities();
     const [isLoading, setIsLoading] = useState(false);
@@ -23,21 +22,17 @@ const EditUserPage = () => {
     const [userProf, setUserProf] = useState([]);
     const [qual, setQual] = useState([]);
     const [errors, setErrors] = useState({});
-    const getProfessionById = (id) => {
-        for (const prof of userProf) {
-            const profData = prof;
-            if (prof.value === id) {
-                return profData;
-            }
-        }
-    };
 
     const getQualities = (elements) => {
         const qualitiesArray = [];
         for (const elem of elements) {
-            for (const quality of qual) {
-                if (elem === quality.value) {
-                    qualitiesArray.push(quality);
+            for (const quality of qualData) {
+                if (elem === quality._id) {
+                    qualitiesArray.push({
+                        value: quality._id,
+                        label: quality.name,
+                        color: quality.color
+                    });
                 }
             }
         }
@@ -49,61 +44,36 @@ const EditUserPage = () => {
         const isValid = validate();
         if (!isValid) return;
         console.log(isValid);
-        await userService.create(data);
-        // if (professions) {
-        // setData({
-        //     ...data,
-        //     profession: getProfessionById(data.profession)
-        // });
-        // }
-        // const { profession, qualities } = data;
-        // api.users
-        //     .update(userId, {
-        //         ...data,
-        //         profession: getProfessionById(profession),
-        //         qualities: getQualities(qualities)
-        //     })
-        //     .then((data) => history.push(`/users/${data._id}`));
-        // console.log({
-        //     ...data,
-        //     profession: getProfessionById(profession),
-        //     qualities: getQualities(qualities)
-        // });
+        // setData((prevState) => ({
+        //     ...prevState,
+        //     qualities: prevState.qualities.map((q) => q.value)
+        // }));
+        updateData(data);
+        history.push(`/users/${userId}`);
     };
-    // const transformData = (data) => {
-    //     const qualData = getQualities(data);
-    //     // qual.filter((q) => q.value === data);
-    //     return qualData.map((qual) => ({ label: qual.name, value: qual._id }));
-    // };
-    // console.log(qualities);
 
-    useEffect(() => {
-        try {
-            setIsLoading(true);
-            const { profession, qualities } = data;
-            setData({
-                ...data,
-                profession: getProfessionById(profession),
-                qualities: getQualities(qualities)
-            });
+    useEffect(async () => {
+        setIsLoading(true);
+        setData({
+            ...data,
+            qualities: getQualities(data.qualities)
+        });
+        const professionsList = Object.keys(professions).map(
+            (professionName) => ({
+                label: professions[professionName].name,
+                value: professions[professionName]._id
+            })
+        );
 
-            const professionsList = Object.keys(professions).map(
-                (professionName) => ({
-                    label: professions[professionName].name,
-                    value: professions[professionName]._id
-                })
-            );
-            setUserProf(professionsList);
-
-            const qualitiesList = Object.keys(qualData).map((optionName) => ({
-                value: qualData[optionName]._id,
-                label: qualData[optionName].name,
-                color: qualData[optionName].color
-            }));
-            setQual(qualitiesList);
-        } catch (error) {}
+        const qualitiesList = Object.keys(qualData).map((optionName) => ({
+            value: qualData[optionName]._id,
+            label: qualData[optionName].name,
+            color: qualData[optionName].color
+        }));
+        setUserProf(professionsList);
+        setQual(qualitiesList);
     }, []);
-
+    console.log(data);
     useEffect(() => {
         if (data._id) setIsLoading(false);
     }, [data]);
@@ -139,6 +109,7 @@ const EditUserPage = () => {
     };
 
     const isValid = Object.keys(errors).length === 0;
+
     return (
         <div className="container mt-5">
             <BackHistoryButton />
